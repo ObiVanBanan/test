@@ -56,11 +56,10 @@ class House:
             self.food_in_fridge, self.money_in_nightstand, self.dirt, self.cat_food)
 
 class Human:
-    mood = 100
 
-    def __init__(self, name):
+    def __init__(self, name, house):
+        self.house = house
         self.name = name
-        self.mood = 100
         self.fullness = 30
 
     def __str__(self) -> str:
@@ -69,14 +68,15 @@ class Human:
 
 class Husband(Human):
 
-    def __init__(self, name):
-        super().__init__(name=name)
+    def __init__(self, name, house):
+        super().__init__(name=name,house=house)
+        self.mood = 100
 
     def __str__(self):
         return super().__str__()
 
     def act(self):
-        House.dirt += 5        
+        self.house.dirt += 5        
         if self.mood < 10:
             return cprint('Муж умер от депресии!', color='red')
         dice = randint(1, 5)
@@ -84,10 +84,10 @@ class Husband(Human):
             return cprint('Муж умер от голода!', color='red')
         if self.fullness < 30:
             self.eat()
-        if House.money_in_nightstand < 110:
-            self.work            
-        if House.dirt > 90:
+        if self.house.dirt > 90:
             self.mood -= 10
+        elif self.house.money_in_nightstand < 110:
+            self.work            
         if dice == 1:
             self.work()
         if dice == 2:
@@ -104,18 +104,18 @@ class Husband(Human):
 
 
     def eat(self):
-        if House.food_in_fridge < 19:
-            pass
+        if self.house.food_in_fridge < 19:
+            self.fullness -= 10
         else:
             self.fullness += 20
-            House.food_in_fridge -= 20
+            self.house.food_in_fridge -= 20
             print('Муж поел')
-            print('В холодильнике осталось {} еды'.format(House.food_in_fridge))
+            print('В холодильнике осталось {} еды'.format(self.house.food_in_fridge))
 
     def work(self):
         print('Муж пошел на работу')
         self.fullness -= 10
-        House.money_in_nightstand += 150
+        self.house.money_in_nightstand += 150
 
     def gaming(self):
         print('Муж играет в Танки!')
@@ -123,26 +123,29 @@ class Husband(Human):
         self.mood += 20
 class Wife(Human):
 
-    def __init__(self, name):
-        super().__init__(name=name)        
+    def __init__(self, name, house):
+        super().__init__(name=name,house=house)
+        self.mood = 100        
 
     def __str__(self):
         return super().__str__()
 
     def act(self):
+        self.house.dirt += 5
         if self.mood < 10:
             return cprint('Жена умерла от депресии!', color='red')
         if self.fullness <= 0:
             return cprint('Жена умерла от голода!', color='red')
-        if House.dirt > 90:
-            self.mood -= 10
         if self.fullness < 30:
-            self.eat()
-        if House.food_in_fridge < 60 or House.cat_food < 20:
+            self.eat()            
+        if self.house.dirt > 90:
+            self.mood -= 10
+            print('Mood - 10')
+        elif self.house.food_in_fridge < 60 or self.house.cat_food < 20:
             self.shopping()
-        if House.dirt > 50:
+        elif self.house.dirt > 50:
             self.clean_house()
-        if self.mood < 16:
+        elif self.mood < 16:
             dice = randint(1, 3)
             if dice == 1:
                 self.buy_fur_coat()
@@ -157,28 +160,29 @@ class Wife(Human):
 
 
     def eat(self):
-        if House.food_in_fridge < 19:
+        if self.house.food_in_fridge < 19:
             self.fullness -= 10
         else:
             self.fullness += 20
-            House.food_in_fridge -= 20
-            print('В холодильнике осталось {} еды'.format(House.food_in_fridge))        
+            self.house.food_in_fridge -= 20
+            print('Жена поела!')
+            print('В холодильнике осталось {} еды'.format(self.house.food_in_fridge))        
 
     def shopping(self):
-        if House.money_in_nightstand < 80:
+        if self.house.money_in_nightstand < 80:
             print('Денег нет!')
         else:
-            House.money_in_nightstand -= 40
-            House.food_in_fridge += 40
-            House.cat_food += 40
+            self.house.money_in_nightstand -= 40
+            self.house.food_in_fridge += 40
+            self.house.cat_food += 40
             print('Жена сходила в магазин! ')
             self.fullness -= 10
 
     def buy_fur_coat(self):
-        if House.money_in_nightstand >= 350:
+        if self.house.money_in_nightstand >= 350:
             self.mood += 60
             print('Жена купила шубу')
-            House.money_in_nightstand -= 350
+            self.house.money_in_nightstand -= 350
             self.fullness -= 10            
         else:
             self.mood = self.mood
@@ -186,15 +190,16 @@ class Wife(Human):
 
     def clean_house(self):
         print('Жена убралась в доме!')
-        if House.dirt < 90:
-            House.dirt -= House.dirt
+        if self.house.dirt < 90:
+            self.house.dirt -= self.house.dirt
             self.fullness -= 10          
         else:
-            House.dirt -= 90
+            self.house.dirt -= 90
             self.fullness -= 10
 class Cat(Husband):
 
-    def __init__(self, name):
+    def __init__(self, name,house):
+        self.house = house
         self.name = name
         self.fullness = 30
     
@@ -209,17 +214,18 @@ class Cat(Husband):
             self.eat()
         dict = randint(1,3)
         if dict == 1:
-            self.soil
+            self.soil()
         else:
             self.sleep()
 
     def eat(self):
-        if House.cat_food < 10:
+        if self.house.cat_food < 10:
             self.fullness -= 10
+            print('Мурзик не поел!')
         else:
             self.fullness += 10
-            House.cat_food -= 5
-
+            self.house.cat_food -= 5
+            print('Мурзик поел!')
 
     def sleep(self):
         print('{} спит'.format(self.name))
@@ -228,12 +234,12 @@ class Cat(Husband):
     def soil(self):
         print('{} дерет обои!'.format(self.name))
         self.fullness -= 10
-        House.dirt += 5
+        self.house.dirt += 5
 
 home = House()
-serge = Husband(name='Сережа')
-masha = Wife(name='Маша')
-murzik = Cat(name='Мурзик')
+serge = Husband(name='Сережа',house=home)
+masha = Wife(name='Маша', house=home)
+murzik = Cat(name='Мурзик', house=home)
 
 for day in range(365):
     cprint('================== День {} =================='.format(day), color='red')
